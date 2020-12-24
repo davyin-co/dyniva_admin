@@ -5,7 +5,7 @@
   "license": "GPL-2.0-or-later",
   "homepage": "https://github.com/davyin-co/dyniva_admin",
   "require": {
-    "drupal/core": "^8.6.0"
+    "drupal/core": "^8.6 || ^9"
   },
   "authors": [{
     "name": "Wei wei",
