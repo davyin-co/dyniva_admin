@@ -3,7 +3,8 @@
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-
+use Drupal\user\Entity\User;
+use Drupal\field\Entity\FieldConfig;
 /**
  * @file
  * Bootstrap sub-theme. dyniva_admin
@@ -23,19 +24,19 @@ function dyniva_admin_preprocess_html(&$variables) {
       ->render($variables['page']['#title']);
   }
   if (!empty($variables['page']['#title'])) {
-    $head_title = array(
+    $head_title = [
       // Marking the title as safe since it has had the tags stripped.
       'title' => trim(strip_tags($variables['page']['#title'])),
       'name' => $site_config
         ->get('name'),
-    );
+    ];
   }
   elseif ($is_front_page) {
-    $head_title = array(
+    $head_title = [
       'title' => t('Home'),
       'name' => $site_config
         ->get('name'),
-    );
+    ];
   }
   else {
     $head_title = [
@@ -49,11 +50,11 @@ function dyniva_admin_preprocess_html(&$variables) {
     }
   }
   $language = \Drupal::languageManager()->getCurrentLanguage();
-  if(theme_get_setting('dyniva_admin_name_'.$language->getId())) {
-    $head_title['name'] = theme_get_setting('dyniva_admin_name_'.$language->getId());
+  if (theme_get_setting('dyniva_admin_name_' . $language->getId())) {
+    $head_title['name'] = theme_get_setting('dyniva_admin_name_' . $language->getId());
   }
-  if(theme_get_setting('dyniva_admin_slogan_'.$language->getId())) {
-    $head_title['slogan'] = theme_get_setting('dyniva_admin_slogan_'.$language->getId());
+  if (theme_get_setting('dyniva_admin_slogan_' . $language->getId())) {
+    $head_title['slogan'] = theme_get_setting('dyniva_admin_slogan_' . $language->getId());
   }
   $variables['base_path'] = base_path();
   $variables['head_title'] = $head_title;
@@ -63,37 +64,39 @@ function dyniva_admin_preprocess_html(&$variables) {
  * dyniva admin theme grid
  */
 function dyniva_admin_preprocess_page(&$vars) {
-//   kint(\Drupal::routeMatch()->getRouteName());
+  //   kint(\Drupal::routeMatch()->getRouteName());
   $sidebar_classes = ['col-sm-3', 'col-md-2', 'sidebar'];
-  $main_classes = array();
+  $main_classes = [];
   $sidebar_hide = 0;
 
-  $user_agent = strtolower ( $_SERVER['HTTP_USER_AGENT'] );
-  $is_mobile = preg_match ( "/phone|iphone|itouch|ipod|symbian|android|htc_|htc-|palmos|blackberry|opera mini|iemobile|windows ce|nokia|fennec|hiptop|kindle|mot |mot-|webos\/|samsung|sonyericsson|^sie-|nintendo/", $user_agent );
+  $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+  $is_mobile = preg_match("/phone|iphone|itouch|ipod|symbian|android|htc_|htc-|palmos|blackberry|opera mini|iemobile|windows ce|nokia|fennec|hiptop|kindle|mot |mot-|webos\/|samsung|sonyericsson|^sie-|nintendo/", $user_agent);
 
   if (isset($_COOKIE['sidebarHide'])) {
     $sidebar_hide = $_COOKIE['sidebarHide'];
   }
   $sidebar_visible = trim(strip_tags(render($vars['page']['sidebar_first'])));
   if (!$sidebar_visible || $sidebar_hide || $is_mobile) {
-    $main_classes = ['col-sm-12','main'];
+    $main_classes = ['col-sm-12', 'main'];
     $sidebar_classes[] = 'sidebar-hide';
-  } else {
-    $main_classes = ['col-sm-9','col-sm-offset-3', 'col-md-10', 'col-md-offset-2', 'main'];
+  }
+  else {
+    $main_classes = [
+      'col-sm-9',
+      'col-sm-offset-3',
+      'col-md-10',
+      'col-md-offset-2',
+      'main',
+    ];
   }
 
   $vars['sidebar_classes'] = implode(' ', $sidebar_classes);
   $vars['main_classes'] = implode(' ', $main_classes);
 
 
-  $user = user_load(\Drupal::currentUser()->id());
-  if(function_exists('ccms_core_get_user_picture')) {
-    $picture = ccms_core_get_user_picture($user);
-    $vars['user_picture'] = $picture['picture'];
-  }else if(function_exists('dyniva_core_get_user_picture')) {
-    $picture = dyniva_core_get_user_picture($user);
-    $vars['user_picture'] = $picture['picture'];
-  }
+  $user = User::load(\Drupal::currentUser()->id());
+  $picture = dyniva_admin_get_user_picture($user);
+  $vars['user_picture'] = $picture['picture'];
 
   $site_config = \Drupal::config('system.site');
   $vars['site_name'] = $site_config->get('name');
@@ -108,10 +111,10 @@ function dyniva_admin_preprocess_block(&$variables) {
   if (isset($variables["elements"]["#id"])) {
     $block_id = $variables["elements"]["#id"];
     $block = \Drupal\block\Entity\Block::load($block_id);
-    if(isset($variables['site_name']) && $block->getPluginId() == 'system_branding_block') {
+    if (isset($variables['site_name']) && $block->getPluginId() == 'system_branding_block') {
       $language = \Drupal::languageManager()->getCurrentLanguage();
-      if(theme_get_setting('dyniva_admin_name_'.$language->getId())) {
-        $variables['site_name'] = theme_get_setting('dyniva_admin_name_'.$language->getId());
+      if (theme_get_setting('dyniva_admin_name_' . $language->getId())) {
+        $variables['site_name'] = theme_get_setting('dyniva_admin_name_' . $language->getId());
       }
     }
 
@@ -129,26 +132,29 @@ function dyniva_admin_preprocess_menu(&$variables) {
     $user = $variables["user"];
     $account = \Drupal\user\Entity\User::load($user->id());
     // @TODO migrate to new field: full_name
-    $fullname = isset($account->user_fullname) ? $account->get('user_fullname')->getValue() : false;
+    $fullname = isset($account->user_fullname) ? $account->get('user_fullname')
+      ->getValue() : FALSE;
     $name = $fullname ? $fullname[0]['value'] : $user->getDisplayName();
 
     $variables["attributes"]["user_fullname"] = $name;
     $variables['#cache']['tags'][] = "user:{$user->id()}";
   }
- if($variables['menu_name'] == 'manage'){
-   foreach ($variables['items'] as $key => $item){
-     if(empty($item['below']) && $item['url']->isRouted() && $item['url']->getRouteName() == '<nolink>'){
-       unset($variables['items'][$key]);
-     }
-   }
- }
+  if ($variables['menu_name'] == 'manage') {
+    foreach ($variables['items'] as $key => $item) {
+      if (empty($item['below']) && $item['url']->isRouted() && $item['url']->getRouteName() == '<nolink>') {
+        unset($variables['items'][$key]);
+      }
+    }
+  }
 }
 
 /**
  * set current language
  */
 function dyniva_admin_preprocess_links(&$variables) {
-  $variables['current_language'] = \Drupal::languageManager()->getCurrentLanguage()->getName();
+  $variables['current_language'] = \Drupal::languageManager()
+    ->getCurrentLanguage()
+    ->getName();
 }
 
 /**
@@ -156,10 +162,10 @@ function dyniva_admin_preprocess_links(&$variables) {
  * http://kristiankaa.dk/article/drupal8-region-specific-menu-theme-hook-suggestion
  */
 function dyniva_admin_theme_suggestions_menu_alter(array &$suggestions, array $variables) {
-    if (isset($variables["attributes"]["region"]) && empty($suggestions)) {
-        //$suggestions[] = $variables["theme_hook_original"] . "__" . $variables["attributes"]["region"];
-      $suggestions[] = "menu__region__" . $variables["attributes"]["region"];
-    }
+  if (isset($variables["attributes"]["region"]) && empty($suggestions)) {
+    //$suggestions[] = $variables["theme_hook_original"] . "__" . $variables["attributes"]["region"];
+    $suggestions[] = "menu__region__" . $variables["attributes"]["region"];
+  }
 }
 
 /**
@@ -182,9 +188,9 @@ function dyniva_admin_form_alter(&$form, FormStateInterface $form_state, $form_i
         '#type' => 'link',
         '#title' => t('Reset your password'),
         '#url' => Url::fromRoute('user.pass'),
-        '#attributes'=>array(
-          'class'=>array('btn','btn-info')
-        )
+        '#attributes' => [
+          'class' => ['btn', 'btn-info'],
+        ],
       ];
       break;
 
@@ -194,12 +200,12 @@ function dyniva_admin_form_alter(&$form, FormStateInterface $form_state, $form_i
         '#type' => 'link',
         '#title' => t('Login'),
         '#url' => Url::fromRoute('user.login'),
-        '#attributes'=>array(
-          'class'=>array('btn','btn-info')
-        )
+        '#attributes' => [
+          'class' => ['btn', 'btn-info'],
+        ],
       ];
 
-    break;
+      break;
 
     default:
       break;
@@ -214,22 +220,68 @@ function dyniva_admin_form_system_theme_settings_alter(&$form, \Drupal\Core\Form
   if (isset($form_id)) {
     return;
   }
-  $form['information'] = array(
-    '#type'  => 'details',
+  $form['information'] = [
+    '#type' => 'details',
     '#title' => t('Information settings'),
-    '#open'  => TRUE
-  );
+    '#open' => TRUE,
+  ];
   $languages = \Drupal::languageManager()->getLanguages();
-  foreach($languages as $language) {
-    $form['information']['dyniva_admin_name_'.$language->getId()] = array(
-      '#type'          => 'textfield',
-      '#title'         => t('Name')." ({$language->getName()})",
-      '#default_value' => theme_get_setting('dyniva_admin_name_'.$language->getId()),
-    );
-    $form['information']['dyniva_admin_slogan_'.$language->getId()] = array(
-      '#type'          => 'textfield',
-      '#title'         => t('Slogan')." ({$language->getName()})",
-      '#default_value' => theme_get_setting('dyniva_admin_slogan_'.$language->getId()),
-    );
+  foreach ($languages as $language) {
+    $form['information']['dyniva_admin_name_' . $language->getId()] = [
+      '#type' => 'textfield',
+      '#title' => t('Name') . " ({$language->getName()})",
+      '#default_value' => theme_get_setting('dyniva_admin_name_' . $language->getId()),
+    ];
+    $form['information']['dyniva_admin_slogan_' . $language->getId()] = [
+      '#type' => 'textfield',
+      '#title' => t('Slogan') . " ({$language->getName()})",
+      '#default_value' => theme_get_setting('dyniva_admin_slogan_' . $language->getId()),
+    ];
   }
+}
+
+/**
+ * Get user picture info.
+ *
+ * @param \Drupal\user\Entity\User $user
+ *   The user entity.
+ */
+function dyniva_admin_get_user_picture(User $user) {
+  $picture = [
+    'picture' => FALSE,
+    'alt' => '',
+    'title' => '',
+  ];
+
+  if ($user->user_picture && !$user->user_picture->isEmpty()) {
+    $picture['picture'] = $user->user_picture->first()
+      ->get('entity')
+      ->getTarget()
+      ->getValue()
+      ->url();
+    $pic_info = $user->user_picture->first()
+      ->get('entity')
+      ->getParent()
+      ->getValue();
+    $picture['alt'] = $pic_info['alt'] ? $pic_info['alt'] : '';
+    $picture['title'] = $pic_info['title'] ? $pic_info['title'] : '';
+  }
+  else {
+    // Get default picture.
+    $field = FieldConfig::loadByName('user', 'user', 'user_picture');
+    // @TODO dont use default_image, as it's not good in features
+    if ($field) {
+      $default_image = $field->getSetting('default_image');
+      $picture['alt'] = $field->getSetting('alt_field') ? $default_image['alt'] : '';
+      $picture['title'] = $field->getSetting('title_field') ? $default_image['title'] : '';
+      $file = empty($default_image['uuid']) ? FALSE : \Drupal::entityManager()
+        ->loadEntityByUuid('file', $default_image['uuid']);
+      $picture['picture'] = $file ? file_create_url($file->getFileUri()) : FALSE;
+    }
+  }
+
+  if (empty($picture['picture'])) {
+    $picture['picture'] = file_create_url(drupal_get_path('theme', 'dyniva_admin') . '/images/user_default.png');
+  }
+  return $picture;
 }
