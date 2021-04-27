@@ -5,6 +5,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\user\Entity\User;
 use Drupal\field\Entity\FieldConfig;
+
 /**
  * @file
  * Bootstrap sub-theme. dyniva_admin
@@ -93,7 +94,6 @@ function dyniva_admin_preprocess_page(&$vars) {
   $vars['sidebar_classes'] = implode(' ', $sidebar_classes);
   $vars['main_classes'] = implode(' ', $main_classes);
 
-
   $user = User::load(\Drupal::currentUser()->id());
   $picture = dyniva_admin_get_user_picture($user);
   $vars['user_picture'] = $picture['picture'];
@@ -101,7 +101,6 @@ function dyniva_admin_preprocess_page(&$vars) {
   $site_config = \Drupal::config('system.site');
   $vars['site_name'] = $site_config->get('name');
 }
-
 
 /**
  * Add a region variable to a block.
@@ -175,7 +174,6 @@ function dyniva_admin_form_node_form_alter(&$form, \Drupal\Core\Form\FormStateIn
   $form['meta']['#weight'] = 100;
 }
 
-
 /**
  * Hook form alert
  */
@@ -242,6 +240,9 @@ function dyniva_admin_form_system_theme_settings_alter(&$form, \Drupal\Core\Form
 
 /**
  * Get user picture info.
+ * 1. data on user->user_picture
+ * 2. user_picture field default config
+ * 3. themes dyniva_admin/images/user_default.png
  *
  * @param \Drupal\user\Entity\User $user
  *   The user entity.
@@ -252,7 +253,6 @@ function dyniva_admin_get_user_picture(User $user) {
     'alt' => '',
     'title' => '',
   ];
-
   if ($user->user_picture && !$user->user_picture->isEmpty()) {
     $picture['picture'] = $user->user_picture->first()
       ->get('entity')
@@ -274,9 +274,10 @@ function dyniva_admin_get_user_picture(User $user) {
       $default_image = $field->getSetting('default_image');
       $picture['alt'] = $field->getSetting('alt_field') ? $default_image['alt'] : '';
       $picture['title'] = $field->getSetting('title_field') ? $default_image['title'] : '';
-      $file = empty($default_image['uuid']) ? FALSE : \Drupal::entityManager()
+      $file = empty($default_image['uuid']) ? FALSE : \Drupal::service('entity.repository')
         ->loadEntityByUuid('file', $default_image['uuid']);
-      $picture['picture'] = $file ? file_create_url($file->getFileUri()) : FALSE;
+      $uri = $file->getFileUri();
+      $picture['picture'] = file_exists($uri) ? file_create_url($uri) : FALSE;
     }
   }
 
