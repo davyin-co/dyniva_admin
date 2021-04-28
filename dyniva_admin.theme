@@ -276,8 +276,10 @@ function dyniva_admin_get_user_picture(User $user) {
       $picture['title'] = $field->getSetting('title_field') ? $default_image['title'] : '';
       $file = empty($default_image['uuid']) ? FALSE : \Drupal::service('entity.repository')
         ->loadEntityByUuid('file', $default_image['uuid']);
-      $uri = $file->getFileUri();
-      $picture['picture'] = file_exists($uri) ? file_create_url($uri) : FALSE;
+      if ($file) {
+        $uri = $file->getFileUri();
+        $picture['picture'] = file_exists($uri) ? file_create_url($uri) : FALSE;
+      }
     }
   }
 
