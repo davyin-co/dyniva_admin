@@ -30,11 +30,53 @@
 .item-container.label {
   color: inherit;
 }
+
 form h4.label {
   color: #000;
   font-size: 100%;
 }
+
 .access-item-settings-wrapper .form-checkboxes .form-item,
 .access-item-settings-wrapper .form-radios .form-item {
-    display: block;
+  display: block;
+}
+
+.path-manage .view-header {
+  float: right;
+  margin-bottom: 10px;
+}
+
+.path-manage .view-header a {
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 4px 1.5em;
+  cursor: pointer;
+  -webkit-transition: all 0.1s;
+  transition: all 0.1s;
+  text-align: center;
+  text-decoration: none;
+  color: #333;
+  border: 1px solid #a6a6a6;
+  border-radius: 20em;
+  background-color: #f2f1eb;
+  background-image: -webkit-linear-gradient(top, #f6f6f3, #e7e7df);
+  background-image: linear-gradient(to bottom, #f6f6f3, #e7e7df);
+  text-shadow: 0 1px hsl(0deg 0% 100% / 60%);
+  font-size: 14px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: normal;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -webkit-font-smoothing: antialiased;
+  border-color: #0071b8;
+  background-color: #0071b8;
+  background-image: -webkit-linear-gradient(top, #007bc6, #0071b8);
+  background-image: linear-gradient(to bottom, #007bc6, #0071b8);
+  color: #fff;
+}
+
+.admin-list li a .label {
+  color: #595959;
 }
