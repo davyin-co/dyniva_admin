@@ -1,0 +1,31 @@
+#admin-audit-trail-filter {
+  .details-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+
+    .seven-details__description {
+      width: 100%;
+    }
+
+    >.form-item,
+    >#operation-dropdown-replace {
+      width: calc(~'20% - 20px');
+      padding-right: 20px;
+
+      .form-text,
+      .form-select {
+        width: 100%;
+      }
+    }
+
+    .form-submit {
+      margin: 0;
+      height: 26px;
+      align-self: center;
+
+      &+.form-submit {
+        margin-left: 10px;
+      }
+    }
+  }
+}
